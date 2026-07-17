@@ -1,3 +1,33 @@
+# 7CITY
+
+**A mobile city-building game for Android — a modified fork of MicropolisCore.**
+
+7CITY wraps the unmodified Micropolis C++ simulation engine in a Capacitor
+shell with a new touch-first mobile UI: a classic title screen, the 8 original
+scenarios, save slots, map overlays, hold-to-build touch controls, and a
+trilingual interface (German / English / Spanish). The simulation itself is the
+original Micropolis engine — only the interface layer is new.
+
+- **Android app:** `io.super7.sevencity` · [super7.io](https://super7.io)
+- **Mobile source:** branch [`mobile-app`](https://github.com/olivergrosche/MicropolisCore/tree/mobile-app)
+  — Capacitor project under `apps/micropolis-android/`, mobile UI under
+  `apps/micropolis/src/lib/mobile/`
+- **License:** GPL-3.0, same as upstream. This is a **modified version** of
+  MicropolisCore and is **not** the original program.
+
+7CITY is based on **Micropolis** (city simulation engine, courtesy of Micropolis
+Corporation) and on **SimCity by Will Wright**. Per the upstream terms, this game
+is called *Micropolis*, never *SimCity* — the SimCity trademark belongs to
+Electronic Arts and is not used here. All original attribution and licensing is
+preserved in the upstream documentation below and in the `*License*.md` files.
+
+---
+
+## Upstream: MicropolisCore
+
+The remainder of this document is the original MicropolisCore README, retained
+unchanged for attribution and provenance.
+
 # Micropolis
 
 **Open source city simulation, based on the original SimCity Classic by Will Wright.**
