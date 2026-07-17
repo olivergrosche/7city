@@ -9,9 +9,9 @@ trilingual interface (German / English / Spanish). The simulation itself is the
 original Micropolis engine — only the interface layer is new.
 
 - **Android app:** `io.super7.sevencity` · [super7.io](https://super7.io)
-- **Mobile source:** branch [`mobile-app`](https://github.com/olivergrosche/MicropolisCore/tree/mobile-app)
-  — Capacitor project under `apps/micropolis-android/`, mobile UI under
-  `apps/micropolis/src/lib/mobile/`
+- **Download (APK):** [GitHub Releases](https://github.com/olivergrosche/7city/releases)
+- **Mobile source:** Capacitor project under `apps/micropolis-android/`, mobile
+  UI under `apps/micropolis/src/lib/mobile/`
 - **License:** GPL-3.0, same as upstream. This is a **modified version** of
   MicropolisCore and is **not** the original program.
 
