@@ -18,8 +18,10 @@
   import { toolFootprintAtCenter } from '$lib/gameTools';
   import type { CursorPresence } from '$lib/input/types';
   import type { ScreenRect } from '$lib/input/viewportTileFrame';
+  import GameMenu from '$lib/mobile/GameMenu.svelte';
+  import { takePendingAction, applyStartAction, startAutosave, stopAutosave } from '$lib/mobile/gameSession';
 
-  let micropolisSimulator: MicropolisSimulator | null = null;
+  let micropolisSimulator = $state<MicropolisSimulator | null>(null);
   let tileView: TileView | null = null;
   let viewRenderRef: (() => void) | null = null;
 
@@ -74,7 +76,23 @@
     micropolisSimulator.setPaused(true);
     micropolisSimulator.syncMapViews();
     await tileView!.initialize(micropolisSimulator);
+
+    // Apply what the start screen chose (new city / scenario / slot / file).
+    const pending = takePendingAction();
+    if (pending) {
+      try { applyStartAction(micropolisSimulator, pending); } catch (e) { console.warn('start action failed:', e); }
+    }
     micropolisSimulator.setPaused(false);
+
+    // Scenario/city loads park the engine's internal speed at 0 until told to
+    // run (classic "press to start"); the first tick can re-clear it, so arm
+    // it again once loading settles.
+    setTimeout(() => {
+      const m = micropolisSimulator?.micropolis;
+      if (m && m.simSpeed === 0) m.setSpeed(3);
+    }, 500);
+
+    startAutosave(micropolisSimulator);
 
     console.log("MicropolisView: onMount:", "micropolisSimulator:", micropolisSimulator);
 
@@ -90,6 +108,7 @@
 
   onDestroy(() => {
     console.log('MicropolisView: onDestroy');
+    stopAutosave();
     micropolisReactive.registerMapPan(null);
     micropolisReactive.detach();
     releaseSharedSimulator(viewRenderRef || undefined);
@@ -109,6 +128,7 @@
         domFrameRects={domFrameRects}
       />
       <GameHud />
+      <GameMenu simulator={micropolisSimulator} />
       <ZoneStatusPanel />
       <BudgetModal />
       <HelpModal />
@@ -128,6 +148,16 @@
   flex-direction: row;
   overflow: hidden;
   --message-bar-height: 2.5rem;
+}
+
+/* Portrait phones: tool palette moves to the bottom edge. */
+@media (orientation: portrait) {
+  .view-container {
+    flex-direction: column;
+  }
+  .view-container > :global(.toolbar) {
+    order: 2;
+  }
 }
 
 .play-main {

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { micropolisReactive } from '$lib/MicropolisReactive.svelte';
 	import { toolState } from '$lib/ToolState.svelte';
+	import { t } from '$lib/mobile/i18n.svelte';
 
 	const zs = $derived(micropolisReactive.zoneStatus);
 
@@ -10,35 +11,35 @@
 </script>
 
 {#if zs.visible && toolState.activeToolId === 'query'}
-	<div class="zone-panel" role="dialog" aria-label="Zone query">
+	<div class="zone-panel" role="dialog" aria-label={t('zoneQuery')}>
 		<div class="zone-header">
-			<span class="zone-title">Zone query</span>
-			<span class="zone-tile">Tile {zs.x}, {zs.y}</span>
-			<button type="button" class="zone-close" onclick={close}>Close</button>
+			<span class="zone-title">{t('zoneQuery')}</span>
+			<span class="zone-tile">{t('zoneTile')} {zs.x}, {zs.y}</span>
+			<button type="button" class="zone-close" onclick={close}>{t('close')}</button>
 		</div>
 		<dl class="zone-stats">
 			<div class="stat">
-				<dt>Category</dt>
+				<dt>{t('zoneCategory')}</dt>
 				<dd>{zs.tileCategory}</dd>
 			</div>
 			<div class="stat">
-				<dt>Density</dt>
+				<dt>{t('zoneDensity')}</dt>
 				<dd>{zs.populationDensity}</dd>
 			</div>
 			<div class="stat">
-				<dt>Land value</dt>
+				<dt>{t('landValue')}</dt>
 				<dd>{zs.landValue}</dd>
 			</div>
 			<div class="stat">
-				<dt>Crime</dt>
+				<dt>{t('crimeRate')}</dt>
 				<dd>{zs.crimeRate}</dd>
 			</div>
 			<div class="stat">
-				<dt>Pollution</dt>
+				<dt>{t('pollution')}</dt>
 				<dd>{zs.pollution}</dd>
 			</div>
 			<div class="stat">
-				<dt>Growth</dt>
+				<dt>{t('rateOfGrowth')}</dt>
 				<dd>{zs.growthRate}</dd>
 			</div>
 		</dl>

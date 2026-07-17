@@ -175,6 +175,17 @@ class MicropolisReactiveCallback {
 		messageY = y;
 		messagePicture = picture;
 		messageImportant = important;
+
+		// The engine's doAutoGoto is never invoked by the core (the classic
+		// frontend handled it) — implement auto-goto here: jump to important
+		// located events when the engine option is enabled. NB: the callback's
+		// micropolis arg is a raw pointer value, so read the flag via the
+		// attached simulator instead.
+		const autoGotoOn = attachedSimulator?.micropolis?.autoGoto ?? false;
+		if (important && x >= 0 && y >= 0 && (x > 0 || y > 0) && autoGotoOn) {
+			console.log(`auto-goto: message ${index} → (${x}, ${y})`);
+			mapPanHandler?.(x, y);
+		}
 	}
 
 	showBudgetAndWait(_micropolis: Micropolis | null, _callbackVal: unknown): void {
@@ -558,6 +569,11 @@ export const micropolisReactive = {
 
 	registerMapPan(handler: ((x: number, y: number) => void) | null): void {
 		mapPanHandler = handler;
+	},
+
+	/** Pan the map view to a world tile (used by auto-goto and the message Goto button). */
+	panMapTo(x: number, y: number): void {
+		mapPanHandler?.(x, y);
 	},
 
 	clearBudgetModalRequest(): void {

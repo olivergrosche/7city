@@ -1,6 +1,7 @@
 <script lang="ts">
-	import { GAME_TOOL_GROUPS, toolMenuLabel, type ToolId } from '$lib/gameTools';
+	import { GAME_TOOL_GROUPS, toolIconUrl, type ToolId } from '$lib/gameTools';
 	import { toolState } from '$lib/ToolState.svelte';
+	import { toolLabel } from '$lib/mobile/i18n.svelte';
 
 	function selectTool(id: ToolId) {
 		toolState.setActiveTool(id);
@@ -8,110 +9,122 @@
 </script>
 
 <nav class="toolbar" aria-label="City tools">
-	{#each GAME_TOOL_GROUPS as group (group.id)}
-		{#if group.label}
-			<div class="tool-group-label">{group.label}</div>
-		{/if}
+	{#each GAME_TOOL_GROUPS as group, gi (group.id)}
+		{#if gi > 0}<div class="tool-sep" aria-hidden="true"></div>{/if}
 		{#each group.tools as tool (tool.id)}
+			{@const active = toolState.activeToolId === tool.id}
 			<button
 				type="button"
 				class="tool-item"
-				class:active={toolState.activeToolId === tool.id}
-				title="{tool.shortcut}: {toolMenuLabel(tool)}"
+				class:active
+				title="{toolLabel(tool.id)} (${tool.cost})"
+				aria-label="{toolLabel(tool.id)} (${tool.cost})"
+				aria-pressed={active}
 				onclick={() => selectTool(tool.id)}
 			>
-				<span class="tool-key">{tool.shortcut}:</span>
-				<span class="tool-name">{toolMenuLabel(tool)}</span>
+				<img class="tool-icon" src={toolIconUrl(tool.id, active)} alt="" draggable="false" />
+				<span class="tool-cost">${tool.cost}</span>
 			</button>
 		{/each}
 	{/each}
 </nav>
 
 <style>
+	/* Shared: original pixel icons on a dark rail; scrolls along its axis. */
 	.toolbar {
 		flex-shrink: 0;
-		width: max-content;
-		max-width: 40vw;
-		height: 100%;
 		z-index: 20;
 		display: flex;
-		flex-direction: column;
-		align-items: stretch;
+		align-items: center;
+		gap: 0.15rem;
 		margin: 0;
-		padding: 0.2rem 0;
-		overflow-x: hidden;
-		overflow-y: auto;
-		background: rgba(26, 26, 46, 0.94);
-		border: none;
-		border-right: 1px solid #5a5a78;
-		box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.06);
-		font-family: ui-monospace, 'Chicago', 'Geneva', monospace;
+		background: rgba(26, 26, 46, 0.96);
+		font-family: ui-monospace, Menlo, monospace;
 		contain: layout style;
 		scrollbar-width: thin;
 		scrollbar-color: #4a4a68 transparent;
-	}
-
-	.tool-group-label {
-		padding: 0.28rem 0.45rem 0.05rem;
-		font-size: 0.46rem;
-		font-weight: 700;
-		letter-spacing: 0.05em;
-		text-transform: uppercase;
-		color: #8a92b0;
-		user-select: none;
-	}
-
-	.tool-group-label:not(:first-child) {
-		margin-top: 0.08rem;
-		border-top: 1px solid rgba(255, 255, 255, 0.08);
-		padding-top: 0.32rem;
+		-webkit-overflow-scrolling: touch;
 	}
 
 	.tool-item {
 		display: flex;
-		flex-direction: row;
-		align-items: baseline;
-		margin: 0;
-		padding: 0.1rem 0.45rem;
-		border: none;
-		border-radius: 0;
-		background: transparent;
-		color: #e8eeff;
-		cursor: pointer;
-		font: inherit;
-		font-size: 0.54rem;
-		font-weight: 500;
-		line-height: 1.15;
-		text-align: left;
-		white-space: nowrap;
-		box-sizing: border-box;
-		outline: none;
-		gap: 0.2rem;
-	}
-
-	.tool-key {
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 0.1rem;
 		flex: 0 0 auto;
-		font-weight: 700;
-		color: #ffc840;
+		border: 1px solid transparent;
+		border-radius: 0.4rem;
+		background: transparent;
+		cursor: pointer;
+		padding: 0.25rem 0.3rem;
+		min-width: 3rem;
+		min-height: 3rem;
+		box-sizing: border-box;
 	}
 
-	.tool-name {
-		flex: 1 1 auto;
-		text-align: left;
+	.tool-icon {
+		width: 2rem;
+		height: 2rem;
+		image-rendering: pixelated;
+		pointer-events: none;
 	}
 
-	.tool-item:hover {
-		background: rgba(46, 46, 80, 0.85);
-		color: #fff;
+	.tool-cost {
+		font-size: 0.55rem;
+		line-height: 1;
+		color: #b9c2dd;
+		font-variant-numeric: tabular-nums;
+		pointer-events: none;
 	}
 
 	.tool-item.active {
 		background: #304878;
-		color: #fff;
-		box-shadow: inset 2px 0 0 #8ab8ff;
+		border-color: #8ab8ff;
+	}
+	.tool-item.active .tool-cost {
+		color: #ffe566;
+		font-weight: 700;
 	}
 
-	.tool-item.active .tool-key {
-		color: #ffe566;
+	.tool-sep {
+		flex: 0 0 auto;
+		background: rgba(255, 255, 255, 0.14);
+	}
+
+	/* Landscape: vertical rail on the left */
+	@media (orientation: landscape) {
+		.toolbar {
+			flex-direction: column;
+			height: 100%;
+			width: 3.6rem;
+			overflow-y: auto;
+			overflow-x: hidden;
+			padding: 0.3rem 0.25rem calc(0.3rem + env(safe-area-inset-bottom, 0px));
+			border-right: 1px solid #5a5a78;
+		}
+		.tool-sep {
+			width: 70%;
+			height: 1px;
+			margin: 0.18rem 0;
+		}
+	}
+
+	/* Portrait: horizontal bar at the bottom */
+	@media (orientation: portrait) {
+		.toolbar {
+			flex-direction: row;
+			width: 100%;
+			height: 3.9rem;
+			overflow-x: auto;
+			overflow-y: hidden;
+			padding: 0.25rem calc(0.35rem + env(safe-area-inset-left, 0px)) calc(0.25rem + env(safe-area-inset-bottom, 0px));
+			border-top: 1px solid #5a5a78;
+		}
+		.tool-sep {
+			width: 1px;
+			height: 60%;
+			margin: 0 0.18rem;
+		}
 	}
 </style>

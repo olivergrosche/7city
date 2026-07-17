@@ -45,6 +45,9 @@ export class MicropolisSimulator {
 	micropolisengine: MainModule | null = null;
     micropolis: Micropolis | null = null;
     callback: JSCallback | null = null;
+    /** Raw JS callback object (pre-embind), used to keep UI state in sync for
+     *  changes the engine itself doesn't announce (e.g. setPaused). */
+    jsCallback: Callback | null = null;
     mapData: Uint16Array | null = null;
     mopData: Uint16Array | null = null;
     cityFileName = '/cities/haight.cty';
@@ -119,8 +122,10 @@ export class MicropolisSimulator {
 
         if (!callback) {
             this.callback = null;
+            this.jsCallback = null;
         } else {
             this.callback = new this.micropolisengine.JSCallback(callback);
+            this.jsCallback = callback;
             this.micropolis.setCallback(this.callback!, this);
         }
 
@@ -219,10 +224,18 @@ export class MicropolisSimulator {
       }
     
       setPaused(nowPaused: boolean) {
-    
+
         const wasPaused = this.paused;
         this.paused = nowPaused;
         this.micropolis!.simPaused = nowPaused;
+
+        // The engine doesn't announce this state change itself — mirror it to
+        // the UI callback so reactive state (HUD pause label etc.) stays true.
+        try {
+            (this.jsCallback as unknown as {
+                updatePaused?: (m: Micropolis | null, v: unknown, paused: boolean) => void;
+            })?.updatePaused?.(this.micropolis, this, nowPaused);
+        } catch { /* ignore */ }
     
         if (!wasPaused && nowPaused) {
           if (this.framesPerSecond !== 0) {
@@ -252,6 +265,7 @@ export class MicropolisSimulator {
         try { this.callback?.delete?.(); } catch {}
         try { this.micropolis?.delete?.(); } catch {}
         this.callback = null;
+        this.jsCallback = null;
         this.micropolis = null;
         this.mapData = null;
         this.mopData = null;
@@ -275,6 +289,20 @@ export class MicropolisSimulator {
 	}
 }
 
+/** When true, getSharedSimulator skips the default demo city (the mobile
+ *  start screen decides what to load instead). */
+let suppressDefaultCityLoad = false;
+
+export function setSuppressDefaultCityLoad(v: boolean) {
+    suppressDefaultCityLoad = v;
+}
+
+/** True if a shared simulator with a city exists (an earlier game session). */
+export function hasSharedCity(): boolean {
+    const store = getGlobalStore();
+    return !!store.simulator?.micropolis;
+}
+
 export async function getSharedSimulator(callback: Callback | null, render: (() => void) | null): Promise<MicropolisSimulator> {
     const store = getGlobalStore();
     if (store.simulator) {
@@ -285,8 +313,10 @@ export async function getSharedSimulator(callback: Callback | null, render: (() 
         sharedSimulator = new MicropolisSimulator();
         await sharedSimulator.initialize(callback, render);
         sharedSimulator.registerRenderCallback(render || (() => {}));
-        sharedSimulator.loadDefaultCityOnce();
+        if (!suppressDefaultCityLoad) sharedSimulator.loadDefaultCityOnce();
         sharedSimulator.micropolis!.enableDisasters = true;
+        // Classic defaults — the engine's init() leaves autoGoto off.
+        sharedSimulator.micropolis!.setAutoGoto(true);
         sharedSimulator.setGameSpeed(sharedSimulator.gameSpeed);
         sharedSimulator.setPaused(false);
         store.simulator = sharedSimulator;

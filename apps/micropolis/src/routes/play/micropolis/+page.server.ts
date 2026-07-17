@@ -2,7 +2,7 @@ import { error } from '@sveltejs/kit';
 import { findNodeByUrl } from '$lib/navigationTree';
 import type { PageServerLoad } from './$types';
 
-export const prerender = false;
+export const prerender = true;
 
 export const load: PageServerLoad = async () => {
 	const requestedUrl = '/play/micropolis';

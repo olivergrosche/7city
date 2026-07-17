@@ -1076,6 +1076,30 @@ function createTypedArrayFromMap(mapInstance) {
     .function("setCallback", &Micropolis::setCallback, allow_raw_pointers())
     .function("init", &Micropolis::init)
     .function("loadCity", &Micropolis::loadCity)
+    .function("loadScenario", &Micropolis::loadScenario)
+    .function("saveCity", &Micropolis::saveCity)
+    .function("saveCityAs", &Micropolis::saveCityAs)
+    .function("generateSomeCity", &Micropolis::generateSomeCity)
+    .function("setGameLevelFunds", &Micropolis::setGameLevelFunds)
+    // Overlay map per-tile accessors (world coordinates; maps use coarser internal blocks)
+    .function("getPopulationDensityAt", optional_override([](Micropolis& m, int x, int y) {
+        return (int)m.populationDensityMap.worldGet(x, y); }))
+    .function("getRateOfGrowthAt", optional_override([](Micropolis& m, int x, int y) {
+        return (int)m.rateOfGrowthMap.worldGet(x, y); }))
+    .function("getTrafficDensityAt", optional_override([](Micropolis& m, int x, int y) {
+        return (int)m.trafficDensityMap.worldGet(x, y); }))
+    .function("getPollutionAt", optional_override([](Micropolis& m, int x, int y) {
+        return (int)m.pollutionDensityMap.worldGet(x, y); }))
+    .function("getCrimeAt", optional_override([](Micropolis& m, int x, int y) {
+        return (int)m.crimeRateMap.worldGet(x, y); }))
+    .function("getLandValueAt", optional_override([](Micropolis& m, int x, int y) {
+        return (int)m.landValueMap.worldGet(x, y); }))
+    .function("getPowerGridAt", optional_override([](Micropolis& m, int x, int y) {
+        return (int)m.powerGridMap.worldGet(x, y); }))
+    .function("getPoliceCoverageAt", optional_override([](Micropolis& m, int x, int y) {
+        return (int)m.policeStationEffectMap.worldGet(x, y); }))
+    .function("getFireCoverageAt", optional_override([](Micropolis& m, int x, int y) {
+        return (int)m.fireStationEffectMap.worldGet(x, y); }))
     .function("simTick", &Micropolis::simTick)
     .function("simUpdate", &Micropolis::simUpdate)
     .function("generateSomeRandomCity", &Micropolis::generateSomeRandomCity)
@@ -1262,6 +1286,8 @@ function createTypedArrayFromMap(mapInstance) {
     .function("makeEarthquake", &Micropolis::makeEarthquake)
     .function("makeFire", &Micropolis::makeFire)
     .function("makeFlood", &Micropolis::makeFlood)
+    .function("makeMonster", &Micropolis::makeMonster)
+    .function("makeTornado", &Micropolis::makeTornado)
     .function("setFire", &Micropolis::setFire)
     .function("fireBomb", &Micropolis::fireBomb)
 

@@ -35,6 +35,9 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@capacitor/core": "^7.6.8",
+		"@capacitor/filesystem": "^7.1.8",
+		"@capacitor/share": "^7.0.4",
 		"@micropolis/render-core": "workspace:*",
 		"@micropolis/tile-renderer": "workspace:*",
 		"gray-matter": "^4.0.3",

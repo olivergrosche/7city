@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { micropolisReactive } from '$lib/MicropolisReactive.svelte';
+	import { t } from '$lib/mobile/i18n.svelte';
 
 	const open = $derived(micropolisReactive.budgetModalRequested);
 
@@ -20,9 +21,9 @@
 {#if open}
 	<div class="budget-backdrop" role="presentation" onclick={dismiss}></div>
 	<div class="budget-modal" role="dialog" aria-labelledby="budget-title" aria-modal="true">
-		<h2 id="budget-title">City budget</h2>
+		<h2 id="budget-title">{t('budgetTitle')}</h2>
 		<p class="budget-copy">
-			End-of-year budget review. Accept to apply the current budget plan and continue the simulation.
+			{t('budgetCopy')}
 		</p>
 		<label class="auto-budget">
 			<input
@@ -30,11 +31,11 @@
 				checked={micropolisReactive.attachedSimulator?.micropolis?.autoBudget ?? true}
 				onchange={toggleAutoBudget}
 			/>
-			Auto-budget (engine manages funding)
+			{t('budgetAutoLabel')}
 		</label>
 		<div class="budget-actions">
-			<button type="button" onclick={dismiss}>Later</button>
-			<button type="button" class="primary" onclick={accept}>Accept budget</button>
+			<button type="button" onclick={dismiss}>{t('budgetLater')}</button>
+			<button type="button" class="primary" onclick={accept}>{t('budgetAccept')}</button>
 		</div>
 	</div>
 {/if}

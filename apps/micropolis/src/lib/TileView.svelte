@@ -23,6 +23,7 @@
   import { registerMicropolisCommands, type MicropolisCommandContext } from '$lib/micropolisCommands';
   import { micropolisReactive } from '$lib/MicropolisReactive.svelte';
   import { toolState } from '$lib/ToolState.svelte';
+  import { t } from '$lib/mobile/i18n.svelte';
   import { resolveEditingTool, toolCursor, TOOL_BY_SHORTCUT } from '$lib/gameTools';
   import {
     syncViewportScreenScale,
@@ -74,8 +75,6 @@
   let screenPosDown: [number, number] = [0, 0];
   let tilePosDown: [number, number] = [0, 0];
   let panDown: [number, number] = [0, 0];
-  let initialTouchX: number = 0;
-  let initialTouchY: number = 0;
   let leftKeyDown = false;
   let rightKeyDown = false;
   let upKeyDown = false;
@@ -279,6 +278,11 @@
     // Prevent double-initialization when remounting/showing tab again
     if (initialized && tileRenderer) {
       console.log('TileView.svelte: initialize skipped (already initialized)');
+      // Re-register the auto-goto pan hook — it is cleared on unmount.
+      micropolisReactive.registerMapPan((x, y) => {
+        tileRenderer?.panTo(x, y);
+        render();
+      });
       resizeCanvas();
       return;
     }
@@ -288,9 +292,19 @@
       return;
     }
 
-    // Playable batch 1: canvas software renderer (reliable with all.png atlas).
-    // WebGL opt-in via prefer: ['webgl', 'canvas'] for parity tests; holodeck is batch 2.
-    const created = createMapTileRenderer(canvasGL, { prefer: ['canvas'] });
+    // GPU-first rendering: webgpu with canvas fallback. (The legacy WebGL
+    // path renders black on Android WebView — frozen upstream, skipped here.)
+    // Canvas contexts are exclusive per element, so probe the WebGPU adapter
+    // BEFORE requesting a webgpu context — a failed attempt would poison the
+    // canvas for the fallback backend.
+    let preferredBackends: MapTileRendererBackend[] = ['canvas'];
+    if (typeof navigator !== 'undefined' && navigator.gpu) {
+      try {
+        const adapter = await navigator.gpu.requestAdapter();
+        if (adapter) preferredBackends = ['webgpu', 'canvas'];
+      } catch { /* keep canvas chain */ }
+    }
+    const created = createMapTileRenderer(canvasGL, { prefer: preferredBackends });
     if (created == null) {
       console.log('TileView.svelte: initialize: no supported renderer backend!');
       return;
@@ -409,7 +423,11 @@
     const displayHeight = layout.height;
 
     // Check if the canvas's drawing buffer size matches the display size (scaled by DPR)
-    const deviceRatio = window.devicePixelRatio || 1;
+    // Software (canvas) rendering: cap the backing resolution — on high-DPR
+    // phones full DPR means millions of CPU-rendered pixels per frame. The
+    // pixel-art upscale (image-rendering: pixelated) hides the difference.
+    const rawRatio = window.devicePixelRatio || 1;
+    const deviceRatio = rendererBackend === 'canvas' ? Math.min(rawRatio, 1.5) : rawRatio;
     const requiredWidth = Math.round(displayWidth * deviceRatio);
     const requiredHeight = Math.round(displayHeight * deviceRatio);
 
@@ -476,9 +494,9 @@
     if (!eng) return null;
     const v = typeof result === 'number' ? result : result.value;
     const tr = eng.ToolResult;
-    if (v === tr.TOOLRESULT_NO_MONEY.value) return 'Insufficient funds';
-    if (v === tr.TOOLRESULT_NEED_BULLDOZE.value) return 'Bulldoze first';
-    if (v === tr.TOOLRESULT_FAILED.value) return 'Cannot build here';
+    if (v === tr.TOOLRESULT_NO_MONEY.value) return t('toolNoMoney');
+    if (v === tr.TOOLRESULT_NEED_BULLDOZE.value) return t('toolNeedBulldoze');
+    if (v === tr.TOOLRESULT_FAILED.value) return t('toolCannotBuild');
     return null;
   }
 
@@ -747,38 +765,133 @@
     }
   }
 
-  function handleTouchStart(event: TouchEvent) {
-    const touch = event.touches[0];
-    initialTouchX = touch.clientX;
-    initialTouchY = touch.clientY;
-    console.log(`MicropolisView: handleTouchStart: event: ${event} initialTouchX": ${initialTouchX} initialTouchY: ${initialTouchY}`);
+  // --- Touch gestures ---
+  // tap: apply tool once · drag: pan · pinch: zoom
+  // tap-and-HOLD (finger still, ~0.3s): enter build mode — dragging then
+  // applies the tool continuously (roads, rails, wires …) until lift-off.
+
+  type TouchMode = 'none' | 'tap' | 'pan' | 'pinch' | 'build';
+  let touchMode: TouchMode = 'none';
+  let touchGrabWorld: [number, number] | null = null;
+  let touchLastDist = 0;
+  let touchStartScreen: [number, number] = [0, 0];
+  const touchTapSlopPx = 8;
+  const touchHoldMs = 300;
+  let touchHoldTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function cancelTouchHold(): void {
+    if (touchHoldTimer) {
+      clearTimeout(touchHoldTimer);
+      touchHoldTimer = null;
+    }
   }
 
-  function handleTouchMove(event: TouchEvent) {
-    const touch = event.touches[0];
-    const deltaX = touch.clientX - initialTouchX;
-    const deltaY = touch.clientY - initialTouchY;
-    console.log(`MicropolisView: handleTouchMove: event: ${event} deltaX": ${deltaX} deltaY: ${deltaY}`);
+  function enterTouchBuildMode(): void {
+    touchHoldTimer = null;
+    if (touchMode !== 'tap' || !tileRenderer) return;
+    touchMode = 'build';
+    try { navigator.vibrate?.(25); } catch { /* not available */ }
+    syncViewportScreenScale(tileRenderer, false);
+    const tile = tileRenderer.viewport.screenToWorldTile(touchStartScreen);
+    tilePos = tile;
+    toolState.setHoverTile(tile);
+    lastAppliedToolTile = null;
+    applyToolAt(tile[0], tile[1]);
   }
 
-  function handleTouchEnd(event: TouchEvent) {
-    console.log(`MicropolisView: handleTouchEnd: event: ${event}`);
+  function canvasOffsetFromTouch(t: Touch): [number, number] {
+    if (!canvasGL) return [0, 0];
+    const rect = canvasGL.getBoundingClientRect();
+    return [t.clientX - rect.left, t.clientY - rect.top];
   }
 
-  function handlePan(detail: any) {
-    const { deltaX, deltaY } = detail;
-    console.log(`TileView: handlePan: event: ${event} deltaX: ${deltaX} deltaY: ${deltaY}`);
+  function touchCentroidAndDist(touches: TouchList): { center: [number, number]; dist: number } {
+    const a = canvasOffsetFromTouch(touches[0]);
+    if (touches.length < 2) return { center: a, dist: 0 };
+    const b = canvasOffsetFromTouch(touches[1]);
+    return {
+      center: [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2],
+      dist: Math.hypot(b[0] - a[0], b[1] - a[1]),
+    };
   }
 
-  function handlePinch(detail: any) {
-    const { scale } = detail;
-    console.log(`TileView: handleScale: detail: ${detail}`);
+  export function ontouchstart(event: TouchEvent): void {
+    if (!tileRenderer) return;
+    event.preventDefault();
+    cancelTouchHold();
+    syncViewportScreenScale(tileRenderer, false);
+    const { center, dist } = touchCentroidAndDist(event.touches);
+    if (event.touches.length === 1) {
+      touchMode = 'tap'; // pan after moving; build after holding still
+      touchStartScreen = center;
+      touchHoldTimer = setTimeout(enterTouchBuildMode, touchHoldMs);
+    } else {
+      // A second finger always means camera gesture — leave build mode.
+      if (touchMode === 'build') lastAppliedToolTile = null;
+      touchMode = 'pinch';
+      touchLastDist = dist;
+    }
+    touchGrabWorld = tileRenderer.viewport.screenToWorldTile(center);
   }
 
-  function handleDeviceMotion(event: DeviceMotionEvent) {
-    if (event.rotationRate) {
-      const { alpha, beta, gamma } = event.rotationRate;
-      console.log(`TileView: handleDeviceMotion: event: ${event} alpha: ${alpha} beta: ${beta} gamma: ${gamma}`);
+  export function ontouchmove(event: TouchEvent): void {
+    if (!tileRenderer || !micropolisSimulator || touchMode === 'none' || !touchGrabWorld) return;
+    event.preventDefault();
+    syncViewportScreenScale(tileRenderer, false);
+    const { center, dist } = touchCentroidAndDist(event.touches);
+
+    if (touchMode === 'build') {
+      const tile = tileRenderer.viewport.screenToWorldTile(center);
+      tilePos = tile;
+      toolState.setHoverTile(tile);
+      applyToolAt(tile[0], tile[1]);
+      return;
+    }
+    if (touchMode === 'tap') {
+      const moved = Math.hypot(center[0] - touchStartScreen[0], center[1] - touchStartScreen[1]);
+      if (moved > touchTapSlopPx) {
+        cancelTouchHold();
+        touchMode = 'pan';
+      }
+    }
+    if (touchMode === 'pinch' && touchLastDist > 0 && dist > 0) {
+      tileRenderer.zoomBy(dist / touchLastDist);
+      touchLastDist = dist;
+      syncViewportScreenScale(tileRenderer, false);
+    }
+    if (touchMode === 'pan' || touchMode === 'pinch') {
+      panToKeepWorldAtScreen(tileRenderer, touchGrabWorld, center);
+      syncCameraRevision();
+      render();
+    }
+  }
+
+  export function ontouchend(event: TouchEvent): void {
+    if (!tileRenderer) return;
+    event.preventDefault();
+    cancelTouchHold();
+    if (event.touches.length === 0) {
+      if (touchMode === 'tap') {
+        syncViewportScreenScale(tileRenderer, false);
+        const tile = tileRenderer.viewport.screenToWorldTile(touchStartScreen);
+        tilePos = tile;
+        toolState.setHoverTile(tile);
+        lastAppliedToolTile = null;
+        applyToolAt(tile[0], tile[1]);
+      }
+      if (touchMode === 'build') {
+        lastAppliedToolTile = null;
+      }
+      touchMode = 'none';
+      touchGrabWorld = null;
+      touchLastDist = 0;
+    } else {
+      // A finger lifted mid-gesture: rebase so the remaining fingers continue seamlessly.
+      syncViewportScreenScale(tileRenderer, false);
+      const { center, dist } = touchCentroidAndDist(event.touches);
+      touchMode = event.touches.length >= 2 ? 'pinch' : 'pan';
+      touchLastDist = dist;
+      touchGrabWorld = tileRenderer.viewport.screenToWorldTile(center);
     }
   }
 
@@ -786,14 +899,6 @@
     console.log("TileView.svelte: onMount");
 
     if (typeof window != 'undefined') {
-/*
-      // Touch event listeners
-      window.document.addEventListener('touchstart', handleTouchStart, false);
-      window.document.addEventListener('touchmove', handleTouchMove, false);
-      window.document.addEventListener('touchend', handleTouchEnd, false);
-*/
-      window.addEventListener('devicemotion', handleDeviceMotion, false);
-      
       // Focus the canvas but don't trap all input
       if (canvasGL) {
         // Give focus only when mouse enters the canvas
@@ -815,13 +920,7 @@
     if (typeof window !== 'undefined') {
       window.removeEventListener('mousemove', handlePanMouseMove);
       window.removeEventListener('mouseup', stopPan);
-/*
-      window.document.removeEventListener('touchstart', handleTouchStart);
-      window.document.removeEventListener('touchmove', handleTouchMove);
-      window.document.removeEventListener('touchend', handleTouchEnd);
-*/
-      window.removeEventListener('devicemotion', handleDeviceMotion);
-      
+
       // Make sure wheel event listener is removed
       if (canvasGL) {
         const canvas = canvasGL; // Avoid TypeScript null check issues
@@ -864,12 +963,12 @@
   onkeydown={onkeydown}
   onkeyup={onkeyup}
   onmouseleave={() => { if (!panning) { toolDragging = false; lastAppliedToolTile = null; } }}
+  ontouchstart={ontouchstart}
+  ontouchmove={ontouchmove}
+  ontouchend={ontouchend}
+  ontouchcancel={ontouchend}
   oncontextmenu={(e) => e.preventDefault()}
 ></canvas>
-<!--
-  use:pan={{ onPan: (any: any) => handlePan(any) }}
-  use:pinch={{ onPinch: (any: any) => handlePinch(any) }}
--->
 
 <style>
 

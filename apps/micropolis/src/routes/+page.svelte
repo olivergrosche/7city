@@ -1,8 +1,21 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
 	import type { PageServerData } from './$types';
 	let { data }: { data: PageServerData } = $props();
 	const pageHeadTitle = $derived(data?.node?.title ?? 'Micropolis');
 	const pageDescription = $derived(data?.node?.description ?? '');
+
+	// Inside the native app the game start screen is the entry point,
+	// not the website hub.
+	onMount(() => {
+		const cap = (window as unknown as Record<string, unknown>).Capacitor as
+			| { isNativePlatform?: () => boolean }
+			| undefined;
+		if (cap?.isNativePlatform?.()) {
+			goto('/start', { replaceState: true });
+		}
+	});
 </script>
 
 <svelte:head>

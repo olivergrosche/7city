@@ -1,13 +1,12 @@
 <script lang="ts">
 	import { micropolisReactive } from '$lib/MicropolisReactive.svelte';
 	import { messageText } from '$lib/engineMessages';
-
-	const DEFAULT_MESSAGE = 'Welcome to Micropolis.';
+	import { t } from '$lib/mobile/i18n.svelte';
 
 	const displayText = $derived(
 		micropolisReactive.messageIndex >= 0
 			? messageText(micropolisReactive.messageIndex)
-			: DEFAULT_MESSAGE,
+			: t('welcome'),
 	);
 
 	const showCoords = $derived(
@@ -23,7 +22,11 @@
 >
 	<span class="message-text">{displayText}</span>
 	{#if showCoords}
-		<span class="coords">({micropolisReactive.messageX}, {micropolisReactive.messageY})</span>
+		<button
+			type="button"
+			class="goto-btn"
+			onclick={() => micropolisReactive.panMapTo(micropolisReactive.messageX, micropolisReactive.messageY)}
+		>➤ Goto</button>
 	{/if}
 </div>
 
@@ -58,9 +61,22 @@
 		flex: 0 1 auto;
 	}
 
-	.coords {
+	.goto-btn {
 		flex: 0 0 auto;
+		pointer-events: auto;
+		font: inherit;
 		font-size: 0.72rem;
+		font-weight: 700;
+		letter-spacing: 0.05em;
 		color: #ffc840;
+		background: rgba(255, 200, 64, 0.12);
+		border: 1px solid rgba(255, 200, 64, 0.55);
+		border-radius: 0.35rem;
+		padding: 0.3rem 0.6rem;
+		min-height: 1.9rem;
+		cursor: pointer;
+	}
+	.goto-btn:active {
+		background: rgba(255, 200, 64, 0.3);
 	}
 </style>

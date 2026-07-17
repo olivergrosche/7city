@@ -1,0 +1,26 @@
+{
+	"name": "micropolis-android",
+	"version": "0.0.1",
+	"private": true,
+	"description": "Android-Wrapper (Capacitor) für die Micropolis-Web-App",
+	"type": "module",
+	"scripts": {
+		"sync:web": "rm -rf www && cp -R ../micropolis/build www && rm -f www/CNAME",
+		"build:web": "pnpm --filter micropolis run build && pnpm run sync:web",
+		"sync": "npx cap sync android",
+		"build:apk": "cd android && ./gradlew assembleDebug",
+		"apk": "pnpm run build:web && pnpm run sync && pnpm run build:apk"
+	},
+	"dependencies": {
+		"@capacitor/android": "^7.0.0",
+		"@capacitor/app": "^7.0.0",
+		"@capacitor/core": "^7.0.0",
+		"@capacitor/filesystem": "^7.0.0",
+		"@capacitor/haptics": "^7.0.0",
+		"@capacitor/share": "^7.0.0",
+		"@capacitor/status-bar": "^7.0.0"
+	},
+	"devDependencies": {
+		"@capacitor/cli": "^7.0.0"
+	}
+}

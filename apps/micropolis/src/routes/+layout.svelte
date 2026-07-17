@@ -13,6 +13,8 @@
 	//   CursorLayer coordinates WebGPU plugins + conditional DOM (not cursor pixels in DOM).
 
 	const isPlayRoute = $derived(page.url.pathname.startsWith('/play/'));
+	// Routes that render without the site chrome (header/nav/footer)
+	const chromeless = $derived(isPlayRoute || page.url.pathname.startsWith('/start'));
 
 	const currentNodeData = $derived(findNodeByUrl(page.url.pathname));
 	const currentPath = $derived(currentNodeData?.fullPath ?? []);
@@ -35,10 +37,10 @@
 	<link rel="icon" href="/favicon.png" />
 </svelte:head>
 
-<div class="app-container" class:play-mode={isPlayRoute}>
+<div class="app-container" class:play-mode={chromeless}>
 	{#if isPlayRoute}
 		<PlayBackButton />
-	{:else}
+	{:else if !chromeless}
 		<div class="navigation-area">
 			<Header />
 
@@ -78,11 +80,11 @@
 		</div>
 	{/if}
 
-	<main class="content-area" class:play-fullscreen={isPlayRoute}>
+	<main class="content-area" class:play-fullscreen={chromeless}>
 		{@render children()}
 	</main>
 
-	{#if !isPlayRoute}
+	{#if !chromeless}
 		<Footer />
 	{/if}
 
