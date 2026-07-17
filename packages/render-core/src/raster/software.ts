@@ -42,6 +42,13 @@ export interface TileAtlas {
 // Micropolis stores rendering flags in the high bits of each map cell; the low
 // 10 bits are the actual tile index. This matches the classic TileBits.MASK.
 const TILE_ID_MASK = 0x03ff;
+// Classic power-blink: zone centers (ZONEBIT) without power (PWRBIT) flash a
+// lightning bolt — in the original this substitution lived in the frontend
+// tile drawer, so the renderer does it here.
+const ZONE_BIT = 0x0400;
+const POWER_BIT = 0x8000;
+const LIGHTNING_BOLT_TILE = 827;
+const POWER_BLINK_MS = 500;
 
 function clampInt(value: number, min: number, max: number): number {
 	return Math.max(min, Math.min(max, Math.floor(value)));
@@ -63,6 +70,7 @@ export function renderMicropolisMapSoftware(
 	const width = description.output.width;
 	const height = description.output.height;
 	const out = new Uint8ClampedArray(width * height * 4);
+	const blinkPhaseOn = Math.floor(Date.now() / POWER_BLINK_MS) % 2 === 0;
 	const mapWidth = description.map.width;
 	const mapHeight = description.map.height;
 	const tileWidth = description.map.tile_width;
@@ -113,7 +121,10 @@ export function renderMicropolisMapSoftware(
 			const logicalTilePixelX = ((Math.floor(worldXPixels) % tileWidth) + tileWidth) % tileWidth;
 			const cellIndex = mapIndex(tileX, tileY, mapHeight);
 			const tileValue = mapData[cellIndex] ?? 0;
-			const tileId = tileValue & TILE_ID_MASK;
+			let tileId = tileValue & TILE_ID_MASK;
+			if (blinkPhaseOn && (tileValue & ZONE_BIT) !== 0 && (tileValue & POWER_BIT) === 0) {
+				tileId = LIGHTNING_BOLT_TILE;
+			}
 			const tileSet = (mopData?.[cellIndex] ?? 0) & 0xff;
 			// The atlas is a regular grid of tiles. Tile id N maps to row/column by
 			// the atlas tile count per row, then the intra-tile pixel offset selects

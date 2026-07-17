@@ -81,6 +81,8 @@
     const pending = takePendingAction();
     if (pending) {
       try { applyStartAction(micropolisSimulator, pending); } catch (e) { console.warn('start action failed:', e); }
+      // New/loaded city: start centered, not at the previous game's camera.
+      tileView?.recenter();
     }
     micropolisSimulator.setPaused(false);
 

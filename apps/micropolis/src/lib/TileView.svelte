@@ -24,6 +24,7 @@
   import { micropolisReactive } from '$lib/MicropolisReactive.svelte';
   import { toolState } from '$lib/ToolState.svelte';
   import { t } from '$lib/mobile/i18n.svelte';
+  import { saveCamera, takeSavedCamera } from '$lib/mobile/gameSession';
   import { resolveEditingTool, toolCursor, TOOL_BY_SHORTCUT } from '$lib/gameTools';
   import {
     syncViewportScreenScale,
@@ -335,6 +336,13 @@
     tileRenderer.panTo(eng.WORLD_W * 0.5, eng.WORLD_H * 0.5);
     tileRenderer.zoomTo(1.0);
     tileRenderer.tileLayer = 0;
+
+    // Coming back from the menu (Continue): restore the previous camera.
+    const cam = takeSavedCamera();
+    if (cam) {
+      tileRenderer.panTo(cam.x, cam.y);
+      tileRenderer.zoomTo(cam.zoom);
+    }
 
     micropolisSimulator.fillMopTiles(tileSet);
 
@@ -758,6 +766,15 @@
     micropolisSimulator.render();
   }
   
+  /** Center the map view (used after starting/loading a different city). */
+  export function recenter(): void {
+    const eng = micropolisSimulator?.micropolisengine;
+    if (!tileRenderer || !eng) return;
+    tileRenderer.panTo(eng.WORLD_W * 0.5, eng.WORLD_H * 0.5);
+    tileRenderer.zoomTo(1.0);
+    render();
+  }
+
   export function refocusCanvas() {
     if (canvasGL && 
         (document.activeElement !== canvasGL)) {
@@ -913,6 +930,11 @@
 
   onDestroy(() => {
     console.log('TileView.svelte: onDestroy');
+
+    // Remember the camera so Continue returns to the same spot.
+    if (tileRenderer) {
+      saveCamera({ x: tileRenderer.panX, y: tileRenderer.panY, zoom: tileRenderer.zoom });
+    }
     
     stopAutoRepeat(null);
     stopKeyPanLoop();

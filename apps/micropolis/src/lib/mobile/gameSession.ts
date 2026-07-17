@@ -116,7 +116,34 @@ export function applyStartAction(sim: MicropolisSimulator, action: StartAction):
 	}
 	// Scenario/city loads can leave the engine's internal speed at 0 ("stopped").
 	if (m.simSpeed === 0) m.setSpeed(3);
+	// A fresh game means a fresh view — don't restore the previous camera.
+	clearSavedCamera();
 	sim.syncMapViews();
+}
+
+// --- Camera persistence across view remounts --------------------------------
+
+export interface SavedCamera {
+	x: number;
+	y: number;
+	zoom: number;
+}
+
+let savedCamera: SavedCamera | null = null;
+
+export function saveCamera(cam: SavedCamera): void {
+	savedCamera = cam;
+}
+
+/** Returns and clears the saved camera (one-shot restore on view mount). */
+export function takeSavedCamera(): SavedCamera | null {
+	const c = savedCamera;
+	savedCamera = null;
+	return c;
+}
+
+export function clearSavedCamera(): void {
+	savedCamera = null;
 }
 
 // --- Autosave ---------------------------------------------------------------

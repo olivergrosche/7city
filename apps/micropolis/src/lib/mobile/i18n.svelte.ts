@@ -132,6 +132,11 @@ const de = {
 	tool_nuclear: 'Atomkraftwerk',
 	tool_airport: 'Flughafen',
 
+	// Legal
+	legal: 'Rechtliches',
+	impressum: 'Impressum',
+	datenschutz: 'Datenschutz',
+
 	// Scenario problems
 	sc_dullsville: 'Langeweile',
 	sc_san_francisco: '8,0-Erdbeben',
@@ -263,6 +268,10 @@ const en: typeof de = {
 	tool_nuclear: 'Nuclear Power',
 	tool_airport: 'Airport',
 
+	legal: 'Legal',
+	impressum: 'Legal Notice',
+	datenschutz: 'Privacy Policy',
+
 	sc_dullsville: 'Boredom',
 	sc_san_francisco: '8.0 Earthquake',
 	sc_hamburg: 'Firebombing',
@@ -392,6 +401,10 @@ const es: typeof de = {
 	tool_stadium: 'Estadio',
 	tool_nuclear: 'Central nuclear',
 	tool_airport: 'Aeropuerto',
+
+	legal: 'Legal',
+	impressum: 'Aviso legal',
+	datenschutz: 'Política de privacidad',
 
 	sc_dullsville: 'Aburrimiento',
 	sc_san_francisco: 'Terremoto 8,0',

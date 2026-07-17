@@ -211,6 +211,12 @@
 				<button class="row" onclick={openMaps}>🗺️ {t('maps')}</button>
 				<button class="row" onclick={openBudget}>💰 {t('budget')}</button>
 			</div>
+
+			<div class="section">
+				<div class="section-title">{t('legal')}</div>
+				<a class="row link-row" href="https://super7.io/impressum.html" target="_blank" rel="noopener">📄 {t('impressum')}</a>
+				<a class="row link-row" href="https://super7.io/7citydatenschutz.html" target="_blank" rel="noopener">🔒 {t('datenschutz')}</a>
+			</div>
 		{:else}
 			<div class="section">
 				<div class="section-title">{t('saveToSlot')}</div>
@@ -269,8 +275,9 @@
 		left: 0;
 		bottom: 0;
 		z-index: 50;
-		width: min(20rem, 86vw);
+		width: min(23rem, 94vw);
 		overflow-y: auto;
+		overflow-x: hidden;
 		background: #141a2a;
 		border-right: 1px solid rgba(255, 255, 255, 0.15);
 		box-shadow: 0.4rem 0 1.6rem rgba(0, 0, 0, 0.45);
@@ -309,15 +316,21 @@
 	}
 	.row:active { background: rgba(255, 255, 255, 0.12); }
 
+	.link-row {
+		text-decoration: none;
+		box-sizing: border-box;
+	}
+
+	/* auto-fit: rows wrap instead of forcing horizontal overflow */
 	.speed-row {
 		display: grid;
-		grid-template-columns: repeat(4, 1fr);
+		grid-template-columns: repeat(auto-fit, minmax(6.4rem, 1fr));
 		gap: 0.3rem;
 		padding: 0.3rem 0.2rem 0.5rem;
 	}
 	.lang-row {
 		display: grid;
-		grid-template-columns: repeat(3, 1fr);
+		grid-template-columns: repeat(auto-fit, minmax(6.4rem, 1fr));
 		gap: 0.3rem;
 		padding: 0.3rem 0.2rem 0.15rem;
 	}
