@@ -33,6 +33,18 @@ development and ideas for later — nothing here blocks the current release.
 - **Tablet layout not deeply tested.** Store screenshots exist; real tablet
   play-testing pending.
 
+## Build configuration notes
+
+- **R8 is enabled** (`minifyEnabled` + `shrinkResources`, v1.3.2). APK 16.2 MB
+  -> 14.1 MB. Note the runtime gains Play advertises are limited here: R8 only
+  touches the Java/Kotlin shell, while the game itself is JS + WASM in assets,
+  so startup is dominated by WASM boot, not dex. Keep `proguard-rules.pro` —
+  Capacitor resolves plugins reflectively and would otherwise break in release
+  builds only. Verified on device with R8: start screen, new city, slot
+  save/load, cold-start restore, and save-to-file (Filesystem + Share).
+- Crash reports are obfuscated; AGP bundles `mapping.txt` into the AAB so Play
+  deobfuscates automatically.
+
 ## Not-yet-wired capabilities
 
 - **Haptics plugin** is bundled but only used for the build-mode buzz. Could add
