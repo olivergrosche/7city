@@ -6,6 +6,27 @@ native Android, loading overlay) and targetSdk 36.
 App ID: `io.super7.sevencity`. This tracks rough edges found during initial
 development and ideas for later — nothing here blocks the current release.
 
+## Where we left off (resume here)
+
+Working tree, `main`-equivalent branch `mobile-app` and the Play build are all
+in sync: **the repo state equals what is live as v1.3.1 (versionCode 5)**, so no
+AAB is pending upload.
+
+**Blocked on:** tester feedback for v1.3.1 from the Pixel 9 Pro reporter.
+
+- If the black screen is **gone** → the WebGPU path was the culprit; close the
+  issue and consider whether to re-enable WebGPU only behind a device check.
+- If it **persists** → ask the three diagnostic questions below before changing
+  code, then continue debugging with those answers.
+
+**Deliberately not shipped:** R8 (see Build configuration notes) — kept off so
+v1.3.1 remains a single-variable test. Do not re-enable it while the black
+screen is unresolved.
+
+**Next candidates once unblocked** (rough priority): sound wiring or hiding the
+dead Sound toggle · maps-close / back-button overlap · scenario win/lose flow
+verification · gesture onboarding.
+
 ## Known issues (bugs / rough edges)
 
 - **Tester report (Pixel 9 Pro, v1.2): black screen after restart, no map.**
