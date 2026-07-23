@@ -293,13 +293,21 @@
       return;
     }
 
-    // GPU-first rendering: webgpu with canvas fallback. (The legacy WebGL
-    // path renders black on Android WebView — frozen upstream, skipped here.)
+    // Renderer selection.
+    // Native Android app: ALWAYS the proven software canvas renderer. The
+    // WebGPU path has never been visually verified inside Android WebView
+    // (the sibling WebGL path renders black there), so the first devices
+    // shipping navigator.gpu in WebView would silently get an untested
+    // renderer — a tester reported exactly such a black map. Browsers keep
+    // the GPU-first chain, where we can actually see and verify it.
     // Canvas contexts are exclusive per element, so probe the WebGPU adapter
     // BEFORE requesting a webgpu context — a failed attempt would poison the
     // canvas for the fallback backend.
+    const isNativeApp = typeof window !== 'undefined' &&
+      !!(window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } })
+        .Capacitor?.isNativePlatform?.();
     let preferredBackends: MapTileRendererBackend[] = ['canvas'];
-    if (typeof navigator !== 'undefined' && navigator.gpu) {
+    if (!isNativeApp && typeof navigator !== 'undefined' && navigator.gpu) {
       try {
         const adapter = await navigator.gpu.requestAdapter();
         if (adapter) preferredBackends = ['webgpu', 'canvas'];

@@ -6,11 +6,19 @@ development and ideas for later — nothing here blocks the current release.
 
 ## Known issues (bugs / rough edges)
 
+- **Tester report (Pixel 9 Pro, v1.2): black screen after restart, no map.**
+  Not reproducible on emulator (cold start / force-stop+load / background
+  process kill all fine, release build). v1.3 hardens the two prime suspects:
+  WebGPU forced off on native Android, and a loading overlay so slow engine
+  boots no longer look like a black screen. Awaiting tester feedback on v1.3;
+  if it persists, request: full-screen vs map-only black, Android System
+  WebView version, and whether it happens on fresh start too.
+
 - **Maps window close button overlaps the game back button** (both top-right).
   The ✕ works, but the fixed PlayBackButton (higher z-index) sits on top. Move
   or restyle one so they don't collide.
-- **~10 s WASM init shows a blank/water map** when entering the play screen.
-  No loading indicator during engine boot + city load. Add a spinner/overlay.
+- ~~10 s WASM init shows a blank map~~ — **fixed in v1.3**: loading overlay
+  (spinner + localized text) covers the map until the engine is ready.
 - **Sound does nothing yet.** The engine fires `makeSound` callbacks that we
   ignore; the Options "Sound" toggle is a no-op. Either wire up audio or hide
   the toggle until it's implemented.

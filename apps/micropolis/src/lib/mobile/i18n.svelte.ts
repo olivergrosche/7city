@@ -132,6 +132,8 @@ const de = {
 	tool_nuclear: 'Atomkraftwerk',
 	tool_airport: 'Flughafen',
 
+	loadingCity: 'Stadt wird geladen …',
+
 	// Legal
 	legal: 'Rechtliches',
 	impressum: 'Impressum',
@@ -268,6 +270,8 @@ const en: typeof de = {
 	tool_nuclear: 'Nuclear Power',
 	tool_airport: 'Airport',
 
+	loadingCity: 'Loading city …',
+
 	legal: 'Legal',
 	impressum: 'Legal Notice',
 	datenschutz: 'Privacy Policy',
@@ -401,6 +405,8 @@ const es: typeof de = {
 	tool_stadium: 'Estadio',
 	tool_nuclear: 'Central nuclear',
 	tool_airport: 'Aeropuerto',
+
+	loadingCity: 'Cargando ciudad …',
 
 	legal: 'Legal',
 	impressum: 'Aviso legal',

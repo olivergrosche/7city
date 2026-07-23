@@ -20,10 +20,15 @@
   import type { ScreenRect } from '$lib/input/viewportTileFrame';
   import GameMenu from '$lib/mobile/GameMenu.svelte';
   import { takePendingAction, applyStartAction, startAutosave, stopAutosave } from '$lib/mobile/gameSession';
+  import { t } from '$lib/mobile/i18n.svelte';
 
   let micropolisSimulator = $state<MicropolisSimulator | null>(null);
   let tileView: TileView | null = null;
   let viewRenderRef: (() => void) | null = null;
+
+  // WASM boot + city load can take 10–20 s on slower phones; without feedback
+  // that reads as "black screen, no map" (first tester bug report).
+  let engineLoading = $state(true);
 
   function getMapViewport() {
     return tileView?.getMapViewport() ?? null;
@@ -85,6 +90,7 @@
       tileView?.recenter();
     }
     micropolisSimulator.setPaused(false);
+    engineLoading = false;
 
     // Scenario/city loads park the engine's internal speed at 0 until told to
     // run (classic "press to start"); the first tick can re-clear it, so arm
@@ -129,6 +135,12 @@
         presences={localCursorPresence}
         domFrameRects={domFrameRects}
       />
+      {#if engineLoading}
+        <div class="engine-loading" role="status" aria-live="polite">
+          <span class="loading-spinner" aria-hidden="true"></span>
+          <span class="loading-text">{t('loadingCity')}</span>
+        </div>
+      {/if}
       <GameHud />
       <GameMenu simulator={micropolisSimulator} />
       <ZoneStatusPanel />
@@ -178,6 +190,34 @@
   min-height: 0;
   width: 100%;
   overflow: hidden;
+}
+
+.engine-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  background: #1a2030;
+  color: #e8eeff;
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 0.95rem;
+}
+
+.loading-spinner {
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 50%;
+  border: 0.3rem solid rgba(255, 255, 255, 0.15);
+  border-top-color: #8ab8ff;
+  animation: engine-spin 0.9s linear infinite;
+}
+
+@keyframes engine-spin {
+  to { transform: rotate(360deg); }
 }
 
 </style>
