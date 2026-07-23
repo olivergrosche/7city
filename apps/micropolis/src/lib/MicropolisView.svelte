@@ -23,12 +23,48 @@
   import { t } from '$lib/mobile/i18n.svelte';
 
   let micropolisSimulator = $state<MicropolisSimulator | null>(null);
-  let tileView: TileView | null = null;
+  // Must be $state: SoftwareSpriteLayer derives its viewport from this via
+  // getViewport(). As a plain `let`, bind:this produced no reactive update, so
+  // the derived viewport stayed null from first render and no sprite ever drew.
+  let tileView = $state<TileView | null>(null);
   let viewRenderRef: (() => void) | null = null;
 
   // WASM boot + city load can take 10–20 s on slower phones; without feedback
   // that reads as "black screen, no map" (first tester bug report).
   let engineLoading = $state(true);
+
+  // Earthquake shake: the engine reports strength via startEarthquake; nudge
+  // the map stack around for the duration, like the classic game did.
+  let shakeX = $state(0);
+  let shakeY = $state(0);
+
+  $effect(() => {
+    void micropolisReactive.quakeRevision;
+    const strength = micropolisReactive.quakeStrength;
+    if (strength <= 0 || micropolisReactive.quakeMsRemaining() <= 0) return;
+
+    const amplitude = 3 + strength * 9;
+    let raf = 0;
+    const step = () => {
+      const left = micropolisReactive.quakeMsRemaining();
+      if (left <= 0) {
+        shakeX = 0;
+        shakeY = 0;
+        return;
+      }
+      // Fade the shake out over the last second.
+      const fade = Math.min(1, left / 1000);
+      shakeX = (Math.random() * 2 - 1) * amplitude * fade;
+      shakeY = (Math.random() * 2 - 1) * amplitude * fade;
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => {
+      cancelAnimationFrame(raf);
+      shakeX = 0;
+      shakeY = 0;
+    };
+  });
 
   function getMapViewport() {
     return tileView?.getMapViewport() ?? null;
@@ -127,7 +163,10 @@
 <div class="view-container">
   <Toolbar />
   <div class="play-main">
-    <div class="map-stack">
+    <div
+      class="map-stack"
+      style:transform={shakeX || shakeY ? `translate(${shakeX}px, ${shakeY}px)` : undefined}
+    >
       <TileView bind:this={tileView} />
       <SoftwareSpriteLayer getViewport={getMapViewport} simulator={micropolisSimulator} />
       <CursorLayer

@@ -4,6 +4,7 @@
 	import type { MicropolisSimulator } from '$lib/MicropolisSimulator';
 	import { t, UI_LANGS, setLang, getLang } from './i18n.svelte';
 	import { listSlots, makeSaveGame, writeSlot, exportSaveGameFile, SLOT_COUNT, type SaveGame } from './persistence';
+	import { setOption } from './settings';
 	import MapsWindow from './MapsWindow.svelte';
 
 	let { simulator = null }: { simulator: MicropolisSimulator | null } = $props();
@@ -105,12 +106,14 @@
 	function applyToggle(key: 'bulldoze' | 'budget' | 'goto' | 'disasters' | 'sound', value: boolean) {
 		const m = simulator?.micropolis;
 		if (!m) return;
+		// Mirror every change into local storage: the engine forgets these on a
+		// fresh start, and loading a .cty overwrites them with the file's values.
 		switch (key) {
-			case 'bulldoze': m.setAutoBulldoze(value); optAutoBulldoze = value; break;
-			case 'budget': m.setAutoBudget(value); optAutoBudget = value; break;
-			case 'goto': m.setAutoGoto(value); optAutoGoto = value; break;
-			case 'disasters': m.setEnableDisasters(value); optDisasters = value; break;
-			case 'sound': m.setEnableSound(value); optSound = value; break;
+			case 'bulldoze': m.setAutoBulldoze(value); optAutoBulldoze = value; setOption('autoBulldoze', value); break;
+			case 'budget': m.setAutoBudget(value); optAutoBudget = value; setOption('autoBudget', value); break;
+			case 'goto': m.setAutoGoto(value); optAutoGoto = value; setOption('autoGoto', value); break;
+			case 'disasters': m.setEnableDisasters(value); optDisasters = value; setOption('disasters', value); break;
+			case 'sound': m.setEnableSound(value); optSound = value; setOption('sound', value); break;
 		}
 	}
 

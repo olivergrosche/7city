@@ -4,6 +4,7 @@ import type { MainModule } from '../types/micropolisengine.d.js';
 import type { Micropolis, Callback, JSCallback } from '../types/micropolisengine.d.js';
 import { loadMicropolisBrowserModule } from '$lib/wasm/browser';
 import { createMapMopViews } from '$lib/wasm/views';
+import { applyOptions } from '$lib/mobile/settings';
 
 export let micropolisengine: MainModule | null = null;
 let sharedSimulator: MicropolisSimulator | null = null;
@@ -314,9 +315,9 @@ export async function getSharedSimulator(callback: Callback | null, render: (() 
         await sharedSimulator.initialize(callback, render);
         sharedSimulator.registerRenderCallback(render || (() => {}));
         if (!suppressDefaultCityLoad) sharedSimulator.loadDefaultCityOnce();
-        sharedSimulator.micropolis!.enableDisasters = true;
-        // Classic defaults — the engine's init() leaves autoGoto off.
-        sharedSimulator.micropolis!.setAutoGoto(true);
+        // Player preferences (incl. enableDisasters, which the .cty format
+        // has no slot for). The engine's init() also leaves autoGoto off.
+        applyOptions(sharedSimulator);
         sharedSimulator.setGameSpeed(sharedSimulator.gameSpeed);
         sharedSimulator.setPaused(false);
         store.simulator = sharedSimulator;

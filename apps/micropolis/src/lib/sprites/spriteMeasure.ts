@@ -9,12 +9,22 @@ import type {
 import { PROCEDURAL_SMOKE_PUFF } from './types';
 import { getManifest, smokePuffManifest } from './classicPack';
 
-function scaleX(viewport: MapViewport): number {
-	return viewport.zoom * viewport.tileWidth;
-}
+/**
+ * Sprite coordinates, frame sizes and hotspots are all expressed in the
+ * engine's pixel grid (16 px per world tile — see `x << 4` in sprite.cpp).
+ * The viewport works in world tiles, so everything is divided by this.
+ */
+const SPRITE_PIXELS_PER_TILE = 16;
 
-function scaleY(viewport: MapViewport): number {
-	return viewport.zoom * viewport.tileHeight;
+/**
+ * Screen pixels per world tile, derived from the viewport itself rather than
+ * from `zoom * tileWidth`: that ignores `screenZoomFactor`, which the map
+ * renderer does apply, so sprites would not track the map when zooming.
+ */
+function screenPixelsPerTile(viewport: MapViewport): [number, number] {
+	const [x0, y0] = viewport.worldTileToScreen([0, 0]);
+	const [x1, y1] = viewport.worldTileToScreen([1, 1]);
+	return [x1 - x0, y1 - y0];
 }
 
 function frameDef(manifest: ResolvedSpriteAtlas, frameIndex: number) {
@@ -42,15 +52,20 @@ export function layoutSpriteOnScreen(
 	const manifest = resolveManifest(instance.packId, instance.manifestId);
 	if (!manifest) return null;
 
-	const sx = scaleX(viewport);
-	const sy = scaleY(viewport);
+	// px per engine sprite-pixel, on screen
+	const [tilePxX, tilePxY] = screenPixelsPerTile(viewport);
+	const sx = tilePxX / SPRITE_PIXELS_PER_TILE;
+	const sy = tilePxY / SPRITE_PIXELS_PER_TILE;
 	const xHot = instance.xHot ?? measurementsForFrame(manifest, instance.frame).hotspot?.x ?? 0;
 	const yHot = instance.yHot ?? measurementsForFrame(manifest, instance.frame).hotspot?.y ?? 0;
 	const scale = instance.scale ?? 1;
 	const fw = manifest.frameWidth * sx * scale;
 	const fh = manifest.frameHeight * sy * scale;
 
-	const [hotScreenX, hotScreenY] = viewport.worldPixelToScreen([instance.worldX, instance.worldY]);
+	const [hotScreenX, hotScreenY] = viewport.worldTileToScreen([
+		instance.worldX / SPRITE_PIXELS_PER_TILE,
+		instance.worldY / SPRITE_PIXELS_PER_TILE,
+	]);
 	const bounds = {
 		x: hotScreenX - xHot * sx * scale,
 		y: hotScreenY - yHot * sy * scale,

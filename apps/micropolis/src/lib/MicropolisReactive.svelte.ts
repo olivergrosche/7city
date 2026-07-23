@@ -98,6 +98,16 @@ function syncFromEngine(): void {
  */
 let mapPanHandler = $state<((x: number, y: number) => void) | null>(null);
 
+/** How long a located event message (and its Goto button) resists being
+ *  overwritten by routine advisories. */
+const LOCATED_MESSAGE_HOLD_MS = 8000;
+let messageLockedUntil = 0;
+
+/** Earthquake shake, driven by the engine's startEarthquake callback. */
+let quakeStrength = $state(0);
+let quakeUntil = $state(0);
+let quakeRevision = $state(0);
+
 class MicropolisReactiveCallback {
 	autoGoto(_micropolis: Micropolis | null, _callbackVal: unknown, x: number, y: number, _message: string): void {
 		mapPanHandler?.(x, y);
@@ -170,20 +180,29 @@ class MicropolisReactiveCallback {
 		picture: boolean,
 		important: boolean
 	): void {
+		// Located events (disasters) carry real coordinates; routine advisories
+		// pass NOWHERE (-1). Advisories fire constantly, so without this an
+		// "More residential zones needed" would wipe a fire report — and its
+		// Goto button — within a second of it appearing.
+		const isLocated = x >= 0 && y >= 0;
+		const now = Date.now();
+		if (!isLocated && now < messageLockedUntil) return;
+
 		messageIndex = index;
 		messageX = x;
 		messageY = y;
 		messagePicture = picture;
 		messageImportant = important;
+		if (isLocated) messageLockedUntil = now + LOCATED_MESSAGE_HOLD_MS;
 
 		// The engine's doAutoGoto is never invoked by the core (the classic
-		// frontend handled it) — implement auto-goto here: jump to important
-		// located events when the engine option is enabled. NB: the callback's
-		// micropolis arg is a raw pointer value, so read the flag via the
-		// attached simulator instead.
+		// frontend handled it), so auto-goto lives here. Trigger on any located
+		// event: only monster/tornado/firebombing set `important`, while fire,
+		// earthquake and flood do not — yet those are exactly the events a
+		// player wants to be taken to. NB: the callback's micropolis arg is a
+		// raw pointer value, so read the flag via the attached simulator.
 		const autoGotoOn = attachedSimulator?.micropolis?.autoGoto ?? false;
-		if (important && x >= 0 && y >= 0 && (x > 0 || y > 0) && autoGotoOn) {
-			console.log(`auto-goto: message ${index} → (${x}, ${y})`);
+		if (isLocated && autoGotoOn) {
 			mapPanHandler?.(x, y);
 		}
 	}
@@ -228,8 +247,13 @@ class MicropolisReactiveCallback {
 		_churchNumber: number
 	): void {}
 
-	startEarthquake(_micropolis: Micropolis | null, _callbackVal: unknown, _strength: number): void {
+	startEarthquake(_micropolis: Micropolis | null, _callbackVal: unknown, strength: number): void {
 		mapRevision++;
+		// Engine strength is 300..1000; the classic game shook the map view for
+		// the duration of the quake.
+		quakeStrength = Math.max(0, Math.min(1, strength / 1000));
+		quakeUntil = Date.now() + 900 + strength;
+		quakeRevision++;
 	}
 
 	startGame(_micropolis: Micropolis | null, _callbackVal: unknown): void {
@@ -644,6 +668,17 @@ export const micropolisReactive = {
 	},
 	get historyRevision() {
 		return historyRevision;
+	},
+	/** 0..1 shake intensity; only meaningful while quakeActive. */
+	get quakeStrength() {
+		return quakeStrength;
+	},
+	/** Bumped on each new quake so views can restart their shake animation. */
+	get quakeRevision() {
+		return quakeRevision;
+	},
+	quakeMsRemaining(): number {
+		return Math.max(0, quakeUntil - Date.now());
 	},
 	get messageIndex() {
 		return messageIndex;

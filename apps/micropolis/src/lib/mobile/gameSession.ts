@@ -8,6 +8,7 @@
 
 import type { MicropolisSimulator } from '$lib/MicropolisSimulator';
 import type { MainModule } from '../../types/micropolisengine.d.js';
+import { applyOptions } from './settings';
 import {
 	makeSaveGame,
 	writeSlot,
@@ -114,6 +115,10 @@ export function applyStartAction(sim: MicropolisSimulator, action: StartAction):
 			applySaveGame(sim, action.save);
 			break;
 	}
+	// Loading a .cty restores that file's autoBulldoze/autoBudget/autoGoto/sound,
+	// clobbering the player's preferences — put them back.
+	applyOptions(sim);
+
 	// Scenario/city loads can leave the engine's internal speed at 0 ("stopped").
 	if (m.simSpeed === 0) m.setSpeed(3);
 	// A fresh game means a fresh view — don't restore the previous camera.

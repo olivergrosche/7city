@@ -260,7 +260,17 @@ ToolResult Micropolis::putDownPark(short mapH, short mapV, ToolEffects *effects)
         tile |= value + WOODS2;
     }
 
-    if (effects->getMapValue(mapH, mapV) != DIRT) {
+    // Like putDownNetwork: clear an auto-bulldozable tile (trees, rubble)
+    // first, charging the bulldozer, so a park can be dropped straight onto
+    // woods the way the original game allowed.
+    MapTile parkTile = effects->getMapTile(mapH, mapV);
+    if (parkTile != DIRT && tally(parkTile)) {
+        effects->addCost(gCostOf[TOOL_BULLDOZER]);
+        effects->setMapValue(mapH, mapV, DIRT);
+        parkTile = DIRT;
+    }
+
+    if (parkTile != DIRT) {
         return TOOLRESULT_NEED_BULLDOZE;
     }
 

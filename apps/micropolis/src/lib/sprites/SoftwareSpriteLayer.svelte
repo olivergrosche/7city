@@ -26,9 +26,12 @@
 	let layerView: AtmosphericLayerView | null = $state(null);
 
 	const instances = $derived(allSpriteInstances());
-	const viewport = $derived(getViewport() ?? null);
+	// Re-read every frame instead of $derived: the viewport is a mutable
+	// non-reactive object, so a derived would never see it appear or change.
+	let viewport = $state<MapViewport | null>(null);
 
 	function refreshSprites(): void {
+		viewport = getViewport() ?? null;
 		const m = simulator?.micropolis ?? null;
 		if (m) {
 			setEngineSpriteInstances(syncEngineSprites(m, 'classic'));

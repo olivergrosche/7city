@@ -29,7 +29,8 @@ export function syncEngineSprites(micropolis: Micropolis | null, packId: string)
 			source: 'engine',
 			manifestId: manifest.id,
 			packId,
-			frame: s.frame,
+			// The engine numbers sprite frames from 1; manifests index from 0.
+			frame: s.frame - 1,
 			worldX: s.x,
 			worldY: s.y,
 			xHot: s.xHot,
