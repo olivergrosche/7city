@@ -1,16 +1,17 @@
 # 7CITY — Known Issues & Roadmap
 
-Status: v1.3.1 (versionCode 5) uploaded to Google Play internal testing on
-23.07.2026 — includes the black-screen hardening (canvas renderer forced on
-native Android, loading overlay) and targetSdk 36.
+Status: v1.4 (versionCode 6) built for Google Play (uploading). Adds the
+residential partial-bulldoze rule, toolbar icons from the original tile atlas,
+and the sprite fixes (monster lifecycle + destruction alignment, airplane
+rendering/direction, all engine sprites now visible). Previous store build:
+v1.3.1 (versionCode 5) — black-screen hardening + targetSdk 36.
 App ID: `io.super7.sevencity`. This tracks rough edges found during initial
 development and ideas for later — nothing here blocks the current release.
 
 ## Where we left off (resume here)
 
-Working tree, `main`-equivalent branch `mobile-app` and the Play build are all
-in sync: **the repo state equals what is live as v1.3.1 (versionCode 5)**, so no
-AAB is pending upload.
+Repo == v1.4 (versionCode 6); AAB `~/7city/7CITY-release-v1.4.aab` built and
+being uploaded to Play internal testing.
 
 **Blocked on:** tester feedback for v1.3.1 from the Pixel 9 Pro reporter.
 
