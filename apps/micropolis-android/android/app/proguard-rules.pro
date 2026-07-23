@@ -1,4 +1,10 @@
-# 7CITY ProGuard/R8 rules
+# 7CITY ProGuard/R8 rules — CURRENTLY DORMANT
+#
+# R8 is disabled (minifyEnabled false), so this file is not applied. It is
+# kept because the rules below were verified to work on device: if R8 is ever
+# enabled again, flip minifyEnabled/shrinkResources in build.gradle and these
+# rules are ready. See KNOWN-ISSUES.md for the measurement and the reason it
+# was deferred.
 #
 # Capacitor discovers plugins and bridges JS<->Java via reflection, so the
 # plugin classes and their @PluginMethod entry points must survive shrinking.

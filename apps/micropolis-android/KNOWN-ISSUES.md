@@ -35,15 +35,21 @@ development and ideas for later — nothing here blocks the current release.
 
 ## Build configuration notes
 
-- **R8 is enabled** (`minifyEnabled` + `shrinkResources`, v1.3.2). APK 16.2 MB
-  -> 14.1 MB. Note the runtime gains Play advertises are limited here: R8 only
-  touches the Java/Kotlin shell, while the game itself is JS + WASM in assets,
-  so startup is dominated by WASM boot, not dex. Keep `proguard-rules.pro` —
-  Capacitor resolves plugins reflectively and would otherwise break in release
-  builds only. Verified on device with R8: start screen, new city, slot
-  save/load, cold-start restore, and save-to-file (Filesystem + Share).
-- Crash reports are obfuscated; AGP bundles `mapping.txt` into the AAB so Play
-  deobfuscates automatically.
+- **R8 is deliberately OFF.** It was implemented and verified on device
+  (APK 16.2 MB -> 14.1 MB; start screen, new city, slot save/load, cold-start
+  restore and save-to-file all worked), then rolled back before shipping:
+  v1.3.1 went out to fix an unreproducible black screen and the tester had not
+  reported back yet. Adding R8 on top would have made a second, release-only
+  failure mode indistinguishable from the original bug. One variable at a time.
+  `proguard-rules.pro` keeps the verified Capacitor keep rules dormant — to
+  re-enable, set `minifyEnabled true` + `shrinkResources true` and switch to
+  `proguard-android-optimize.txt`.
+- Note on expectations: Play advertises faster startup / less memory from R8,
+  but that applies to the Java/Kotlin shell. 7CITY is JS + WASM in assets, which
+  R8 never touches — startup is dominated by WASM boot, so the realistic win is
+  download size, not runtime.
+- **targetSdk/compileSdk 36** is in place since v1.3.1 (Play requirement from
+  Aug 2026) and stays regardless of the R8 decision.
 
 ## Not-yet-wired capabilities
 
