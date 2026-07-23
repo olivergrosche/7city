@@ -29,6 +29,20 @@ verification · gesture onboarding.
 
 ## Known issues (bugs / rough edges)
 
+- ~~Sprites (monster, tornado, plane, ship, helicopter) invisible~~ — **fixed**:
+  `tileView` is now `$state` (the sprite layer's viewport was stuck null), sprite
+  coords converted from the engine's 16px grid, engine 1-based frames mapped to
+  0-based manifests, and the colour-key backgrounds punched to alpha.
+- ~~Monster flashes and vanishes / destroys nothing~~ — **fixed** (sprite.cpp):
+  the water-death guard tested `count != 0`, killing a river-spawned monster on
+  its first step in watery cities; now `count == 0`, so it rampages for its full
+  life (~1300 ticks) and only submerges at the end.
+- ~~Monster destruction trail offset ~4 tiles~~ — **fixed**: sprite re-anchored
+  onto the engine's destroyMapTile(x+48,y+16) point (render only).
+- ~~Airplane sprite broken / squished / flying backwards~~ — **fixed**: manifest
+  trimmed to the real 8 frames, background-size uses the rightmost frame, and the
+  plane points nose-first in its 8 flight directions (like ship/helicopter).
+
 - ~~Toolbar icons not distinctive enough~~ — **fixed**: icons are now composed
   from the original Micropolis tile atlas (`scripts/make-tool-icons.py`), so
   each tool shows the real game artwork; query and bulldozer are hand-drawn
