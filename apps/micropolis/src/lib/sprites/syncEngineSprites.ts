@@ -18,7 +18,6 @@ export function syncEngineSprites(micropolis: Micropolis | null, packId: string)
 	if (!sprites?.length) return [];
 
 	const AIRPLANE_TYPE = 3; // engineType of the airplane sprite
-	const AIRPLANE_STRAIGHT_FRAME = 0; // sheet index 0 = flying "up" / straight
 	const MONSTER_TYPE = 5;
 
 	const out: SpriteInstance[] = [];
@@ -29,9 +28,12 @@ export function syncEngineSprites(micropolis: Micropolis | null, packId: string)
 		if (!manifest) continue;
 
 		// The engine numbers sprite frames from 1; manifests index from 0.
-		// The airplane is deliberately pinned to its straight (upward) view
-		// instead of the engine's 8 directional/banking frames.
-		const frame = s.type === AIRPLANE_TYPE ? AIRPLANE_STRAIGHT_FRAME : s.frame - 1;
+		// Airplane: frames 1..8 are the 8 flight directions (nose forward);
+		// frames 9..11 are brief takeoff/runway poses the sheet has no art for,
+		// so clamp them to the eastbound frame (index 2), which the engine's own
+		// takeoff logic settles into.
+		let frame = s.frame - 1;
+		if (s.type === AIRPLANE_TYPE && frame > 7) frame = 2;
 
 		let xHot = s.xHot;
 		let yHot = s.yHot;
