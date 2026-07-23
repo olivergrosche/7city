@@ -1,6 +1,8 @@
 # 7CITY — Known Issues & Roadmap
 
-Status: v1.2 (versionCode 3) submitted to Google Play internal testing.
+Status: v1.3.1 (versionCode 5) uploaded to Google Play internal testing on
+23.07.2026 — includes the black-screen hardening (canvas renderer forced on
+native Android, loading overlay) and targetSdk 36.
 App ID: `io.super7.sevencity`. This tracks rough edges found during initial
 development and ideas for later — nothing here blocks the current release.
 
