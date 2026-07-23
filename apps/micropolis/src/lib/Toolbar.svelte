@@ -22,7 +22,7 @@
 				aria-pressed={active}
 				onclick={() => selectTool(tool.id)}
 			>
-				<img class="tool-icon" src={toolIconUrl(tool.id, active)} alt="" draggable="false" />
+				<img class="tool-icon" src={toolIconUrl(tool.id)} alt="" draggable="false" />
 				<span class="tool-cost">${tool.cost}</span>
 			</button>
 		{/each}

@@ -94,28 +94,14 @@ export function toolMenuLabel(tool: ToolDef): string {
 	return `${tool.label} ($${tool.cost})`;
 }
 
-/** Original X11 tool icon basenames under /mobile/tools/ (tool_<name>.png + tool_<name>hi.png). */
-export const TOOL_ICONS: Record<ToolId, string> = {
-	query: 'query',
-	bulldoze: 'bulldozer',
-	wire: 'wire',
-	road: 'road',
-	rail: 'railroad',
-	park: 'park',
-	res: 'residential',
-	com: 'commercial',
-	ind: 'industrial',
-	police: 'policestation',
-	fire: 'firestation',
-	seaport: 'seaport',
-	coal: 'coalpower',
-	stadium: 'stadium',
-	nuclear: 'nuclearpower',
-	airport: 'airport',
-};
-
-export function toolIconUrl(id: ToolId, active: boolean): string {
-	return `/mobile/tools/tool_${TOOL_ICONS[id]}${active ? 'hi' : ''}.png`;
+/**
+ * Toolbar icons under /mobile/tools/, composed from the original Micropolis
+ * tile atlas (scripts/make-tool-icons.py) so each tool shows the actual game
+ * artwork for the thing it builds. Selection is conveyed by the button
+ * highlight, so there is no separate "active" variant.
+ */
+export function toolIconUrl(id: ToolId): string {
+	return `/mobile/tools/tool_${id}.png`;
 }
 
 export function resolveEditingTool(module: MainModule, id: ToolId): EditingTool {

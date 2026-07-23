@@ -29,6 +29,16 @@ verification · gesture onboarding.
 
 ## Known issues (bugs / rough edges)
 
+- ~~Toolbar icons not distinctive enough~~ — **fixed**: icons are now composed
+  from the original Micropolis tile atlas (`scripts/make-tool-icons.py`), so
+  each tool shows the real game artwork; query and bulldozer are hand-drawn
+  pixel art in the same palette because no game tile depicts them.
+- ~~Cannot bulldoze single tiles of a residential zone~~ — **fixed** in
+  `tool.cpp`: tiles 240..260 (empty "R" frame and small single houses) without
+  ZONEBIT clear individually; grown high-rises (261+), hospitals, churches,
+  commercial and industrial are unchanged. This resolves the upstream
+  `@bug Sometimes we can delete parts of a residential zone, but not always`.
+
 - **Tester report (Pixel 9 Pro, v1.2): black screen after restart, no map.**
   Not reproducible on emulator (cold start / force-stop+load / background
   process kill all fine, release build). v1.3 hardens the two prime suspects:

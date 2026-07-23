@@ -1097,6 +1097,50 @@ ToolResult Micropolis::bulldozerTool(short x, short y, ToolEffects *effects)
     }
 
 
+    /* Original SimCity behaviour: a tile belonging to a RESIDENTIAL zone but
+     * not its center can be cleared on its own, whether or not a building has
+     * grown there. Clicking the center ("R") still rubbles the whole 3x3 -- it
+     * carries ZONEBIT and has already returned from the block above.
+     *
+     * This cannot go through connectTile()/layDoze(): putBuilding() and
+     * zonePlop() lay the outer tiles with BNCNBIT only, i.e. without BULLBIT,
+     * so layDoze() rejects them. Grown single houses (BLBNCNBIT) already pass
+     * that gate today, which is the inconsistency the "@bug Sometimes we can
+     * delete parts of a residential zone, but not always" note above asks to
+     * resolve.
+     *
+     * The range is [RESBASE, HHTHR] == [240, 260]: the empty zone frame
+     * (240..248) and the small single-tile houses (249..260). Grown 3x3
+     * residential buildings start at 261 (resPlop) and are deliberately NOT
+     * included -- once a block has become a high-rise it can only be removed
+     * as a whole, via its center, exactly as in the original game. Hospitals
+     * (405..413), churches (414..422), commercial (COMBASE..) and industrial
+     * (INDBASE..) tiles keep their current behaviour untouched.
+     *
+     * Deliberately NOT implemented by setting BULLBIT in putBuilding()/
+     * zonePlop(): makeFlood() seeds a flood on any tile carrying
+     * BULLBIT|BURNBIT (disasters.cpp), so that would quietly make residential
+     * zones more flood-prone than commercial and industrial ones. Keeping the
+     * change inside the bulldozer confines it to the bulldozer.
+     */
+    if (!(mapVal & ZONEBIT) && tile >= RESBASE && tile <= HHTHR) {
+
+        effects->setMapValue(x, y, DIRT);
+        effects->addCost(gCostOf[TOOL_BULLDOZER]);
+
+        /* Re-shape adjacent road/rail/wire, as connectTile() does after
+         * layDoze(); fixSingle only rewrites tiles that already are road,
+         * rail or wire, so the remaining zone tiles are untouched. */
+        fixZone(x, y, effects);
+
+        frontendMsg = new FrontendMessageDidTool("Dozr", x, y);
+        didTool("Dozr", x, y);
+        effects->addFrontendMessage(frontendMsg);
+
+        return TOOLRESULT_OK;
+    }
+
+
     if (tile == RIVER || tile == REDGE || tile == CHANNEL) {
 
         result = connectTile(x, y, CONNECT_TILE_BULLDOZE, effects);
