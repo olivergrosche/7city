@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { micropolisReactive } from '$lib/MicropolisReactive.svelte';
 	import { t } from '$lib/mobile/i18n.svelte';
+	import { setOption } from '$lib/mobile/settings';
 
 	const open = $derived(micropolisReactive.budgetModalRequested);
 
@@ -15,6 +16,8 @@
 	function toggleAutoBudget(event: Event) {
 		const checked = (event.target as HTMLInputElement).checked;
 		micropolisReactive.poke.setAutoBudget(checked);
+		// Persist like the Options menu toggle, so it survives reload/city load.
+		setOption('autoBudget', checked);
 	}
 </script>
 

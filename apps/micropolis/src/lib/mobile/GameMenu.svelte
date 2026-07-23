@@ -211,8 +211,10 @@
 
 			<div class="section">
 				<div class="section-title">{t('windows')}</div>
-				<button class="row" onclick={openMaps}>🗺️ {t('maps')}</button>
-				<button class="row" onclick={openBudget}>💰 {t('budget')}</button>
+				<div class="window-grid">
+					<button class="win-btn" onclick={openMaps}>🗺️ {t('maps')}</button>
+					<button class="win-btn" onclick={openBudget}>💰 {t('budget')}</button>
+				</div>
 			</div>
 
 			<div class="section">
@@ -376,6 +378,25 @@
 		gap: 0.35rem;
 		padding: 0.2rem;
 	}
+	.window-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 0.35rem;
+		padding: 0.2rem 0.2rem 0;
+	}
+	.win-btn {
+		font: inherit;
+		font-size: 0.88rem;
+		color: inherit;
+		text-align: left;
+		background: rgba(255, 255, 255, 0.06);
+		border: 1px solid rgba(255, 255, 255, 0.16);
+		border-radius: 0.35rem;
+		padding: 0.6rem 0.55rem;
+		cursor: pointer;
+		min-height: 2.6rem;
+	}
+	.win-btn:active { background: rgba(255, 255, 255, 0.14); }
 	.dis-btn {
 		font: inherit;
 		font-size: 0.78rem;

@@ -1211,8 +1211,13 @@ void Micropolis::doMonsterSprite(SimSprite *sprite)
 
     c = getChar(sprite->x + sprite->xHot, sprite->y + sprite->yHot);
 
+    /* Kill the monster when it walks off the map, or when it submerges back
+     * into water at the END of its life (count == 0). The original tested
+     * count != 0, which meant a monster spawned on a river tile (makeMonster
+     * always picks one) died on its very first step in water-heavy cities such
+     * as Tokyo -- so it flashed and vanished without ever rampaging ashore. */
     if (c == -1
-          || (c == RIVER && sprite->count != 0 && sprite->control == -1)) {
+          || (c == RIVER && sprite->count == 0 && sprite->control == -1)) {
         sprite->frame = 0; /* kill scary monster */
     }
 

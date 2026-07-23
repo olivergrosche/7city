@@ -17,6 +17,14 @@
 		manifest?.frames.find((f) => f.index === instance.frame) ?? manifest?.frames[0],
 	);
 	const isSmoke = $derived(instance.manifestId === PROCEDURAL_SMOKE_PUFF);
+
+	// Sheet width in tiles from the rightmost frame, not the last-listed one, so
+	// out-of-order or aliased frames can't squish the whole sheet.
+	const sheetTilesWide = $derived(
+		manifest
+			? Math.max(1, ...manifest.frames.map((f) => f.atlas.x / manifest.frameWidth + 1))
+			: 1,
+	);
 </script>
 
 {#if layout && manifest}
@@ -42,10 +50,7 @@
 			style:background-position="-{(frame?.atlas.x ?? 0) *
 				(layout.bounds.w / manifest.frameWidth)}px -{(frame?.atlas.y ?? 0) *
 				(layout.bounds.h / manifest.frameHeight)}px"
-			style:background-size="{manifest.frames.length > 0
-				? (manifest.frames[manifest.frames.length - 1].atlas.x + manifest.frameWidth) *
-					(layout.bounds.w / manifest.frameWidth)
-				: layout.bounds.w}px {layout.bounds.h}px"
+			style:background-size="{sheetTilesWide * layout.bounds.w}px {layout.bounds.h}px"
 			style:opacity={instance.opacity ?? 1}
 			style:z-index={instance.zIndex ?? 10}
 			style:transform={instance.heading != null

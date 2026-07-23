@@ -110,7 +110,7 @@ const de = {
 	// Budget dialog
 	budgetTitle: 'Stadtbudget',
 	budgetCopy: 'Jahresabschluss: Budget prüfen. Mit „Übernehmen“ gilt der aktuelle Budgetplan und die Simulation läuft weiter.',
-	budgetAutoLabel: 'Auto-Budget (Engine verwaltet die Finanzierung)',
+	budgetAutoLabel: 'Auto-Budget',
 	budgetLater: 'Später',
 	budgetAccept: 'Budget übernehmen',
 
@@ -249,7 +249,7 @@ const en: typeof de = {
 
 	budgetTitle: 'City budget',
 	budgetCopy: 'End-of-year budget review. Accept to apply the current budget plan and continue the simulation.',
-	budgetAutoLabel: 'Auto-budget (engine manages funding)',
+	budgetAutoLabel: 'Auto-budget',
 	budgetLater: 'Later',
 	budgetAccept: 'Accept budget',
 
@@ -385,7 +385,7 @@ const es: typeof de = {
 
 	budgetTitle: 'Presupuesto municipal',
 	budgetCopy: 'Revisión presupuestaria de fin de año. Acepta para aplicar el plan actual y continuar la simulación.',
-	budgetAutoLabel: 'Auto-presupuesto (el motor gestiona la financiación)',
+	budgetAutoLabel: 'Auto-presupuesto',
 	budgetLater: 'Más tarde',
 	budgetAccept: 'Aceptar presupuesto',
 
