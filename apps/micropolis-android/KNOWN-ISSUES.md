@@ -1,12 +1,9 @@
 # 7CITY — Known Issues & Roadmap
 
-Status: v1.4 (versionCode 6) built for Google Play (uploading). Adds the
-residential partial-bulldoze rule, toolbar icons from the original tile atlas,
-and the sprite fixes (monster lifecycle + destruction alignment, airplane
-rendering/direction, all engine sprites now visible). Previous store build:
-v1.3.1 (versionCode 5) — black-screen hardening + targetSdk 36.
-App ID: `io.super7.sevencity`. This tracks rough edges found during initial
-development and ideas for later — nothing here blocks the current release.
+Status: v1.5 (versionCode 7) built for Google Play. Adds the sprite-placement
+fix (ship no longer crosses land), correct sprite transparency, removal of the
+stray skywriting plane, and the train sheet fix. Earlier store builds: v1.4
+(vc6, residential bulldoze + tool icons + monster/airplane), v1.3.1 (vc5).
 
 ## Where we left off (resume here)
 
@@ -43,6 +40,16 @@ verification · gesture onboarding.
 - ~~Airplane sprite broken / squished / flying backwards~~ — **fixed**: manifest
   trimmed to the real 8 frames, background-size uses the rightmost frame, and the
   plane points nose-first in its 8 flight directions (like ship/helicopter).
+- ~~Ship sails across land; ship looks see-through~~ — **fixed**: sprites were
+  drawn with the hotspot *subtracted*, putting the ship 4 tiles left of the water
+  the engine steers it along; frames are now centred on `SimSprite.x + xHot`. The
+  see-through hull came from keying every black pixel, including the dither
+  shading inside the hull — masks are now flood-filled from each frame's border
+  (`scripts/make-sprite-alpha.py`).
+- ~~Stray airplane parts drifting past the real plane~~ — **fixed**: population
+  milestones auto-launched a second smoke-writing plane (not an original-game
+  feature); it now only flies in the hand-operated pilot mode. The train sheet's
+  9 columns vs 5 listed frames also stretched every train frame 1.8x.
 
 - ~~Toolbar icons not distinctive enough~~ — **fixed**: icons are now composed
   from the original Micropolis tile atlas (`scripts/make-tool-icons.py`), so
