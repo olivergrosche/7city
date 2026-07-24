@@ -18,7 +18,6 @@ export function syncEngineSprites(micropolis: Micropolis | null, packId: string)
 	if (!sprites?.length) return [];
 
 	const AIRPLANE_TYPE = 3; // engineType of the airplane sprite
-	const MONSTER_TYPE = 5;
 
 	const out: SpriteInstance[] = [];
 	for (let i = 0; i < sprites.length; i++) {
@@ -35,18 +34,6 @@ export function syncEngineSprites(micropolis: Micropolis | null, packId: string)
 		let frame = s.frame - 1;
 		if (s.type === AIRPLANE_TYPE && frame > 7) frame = 2;
 
-		let xHot = s.xHot;
-		let yHot = s.yHot;
-		if (s.type === MONSTER_TYPE) {
-			// The engine flattens the map at destroyMapTile(x + 48, y + 16),
-			// but draws the sprite with hotspot (40, 16), so the destruction
-			// trail lands ~4 tiles right of the visible monster. Re-anchor the
-			// 48px frame so its centre sits on that destroyed tile; this only
-			// moves the rendering, not the simulation.
-			xHot = -24; // frame centre (24) lands on x + 48
-			yHot = 8; // frame centre (24) lands on y + 16
-		}
-
 		out.push({
 			id: `engine-${s.type}-${i}`,
 			source: 'engine',
@@ -55,8 +42,10 @@ export function syncEngineSprites(micropolis: Micropolis | null, packId: string)
 			frame,
 			worldX: s.x,
 			worldY: s.y,
-			xHot,
-			yHot,
+			// Pass the engine hotspot through untouched; the manifest's
+			// drawOffset places the frame around it (see spriteMeasure).
+			xHot: s.xHot,
+			yHot: s.yHot,
 		});
 	}
 	return out;

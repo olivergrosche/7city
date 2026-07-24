@@ -9,7 +9,6 @@
 	import { setEngineSpriteInstances } from './spriteRegistry.svelte';
 	import {
 		tickSkywriting,
-		watchSkywritingMilestones,
 		handleSkywritingKeyDown,
 		handleSkywritingKeyUp,
 		toggleSkywritingPilot,
@@ -36,7 +35,10 @@
 		if (m) {
 			setEngineSpriteInstances(syncEngineSprites(m, 'classic'));
 		}
-		watchSkywritingMilestones();
+		// Population milestones used to auto-launch a second, smoke-writing
+		// plane. It is not part of the original game and reads as stray plane
+		// parts drifting past the real airliner, so it now only flies when the
+		// hidden pilot mode is switched on by hand.
 		tickSkywriting();
 		layerView?.refresh();
 	}

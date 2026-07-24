@@ -23,6 +23,20 @@ export interface SpriteAtlasManifest {
 	frameWidth: number;
 	frameHeight: number;
 	frames: SpriteFrameDef[];
+	/**
+	 * Where the engine hotspot sits inside the drawn frame, in sprite pixels —
+	 * the original SPRITE_OFFSET_X/Y. The engine's own world position is
+	 * `SimSprite.x + xHot` (see spriteNotInBounds / checkSpriteCollision), so
+	 * the frame's top-left is that point minus this offset. Without it a sprite
+	 * is drawn several tiles away from where the simulation thinks it is.
+	 */
+	drawOffset?: { x: number; y: number };
+	/**
+	 * Columns actually present in the sheet image, when that differs from
+	 * `frames.length` (some classic sheets carry unused duplicate frames).
+	 * Used to size the CSS background so frames are not stretched.
+	 */
+	sheetColumns?: number;
 	/** Default measurements when a frame omits them. */
 	defaultMeasurements?: Record<string, SpriteMeasurementDef>;
 }

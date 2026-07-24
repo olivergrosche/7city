@@ -18,11 +18,13 @@
 	);
 	const isSmoke = $derived(instance.manifestId === PROCEDURAL_SMOKE_PUFF);
 
-	// Sheet width in tiles from the rightmost frame, not the last-listed one, so
-	// out-of-order or aliased frames can't squish the whole sheet.
+	// Columns in the sheet image. Some classic sheets carry unused duplicate
+	// frames the manifest doesn't list; sizing the background off the listed
+	// frames would then stretch every frame (the train sheet has 9, uses 5).
 	const sheetTilesWide = $derived(
 		manifest
-			? Math.max(1, ...manifest.frames.map((f) => f.atlas.x / manifest.frameWidth + 1))
+			? (manifest.sheetColumns ??
+				Math.max(1, ...manifest.frames.map((f) => f.atlas.x / manifest.frameWidth + 1)))
 			: 1,
 	);
 </script>

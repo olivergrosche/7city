@@ -62,16 +62,20 @@ export function layoutSpriteOnScreen(
 	const fw = manifest.frameWidth * sx * scale;
 	const fh = manifest.frameHeight * sy * scale;
 
-	const [hotScreenX, hotScreenY] = viewport.worldTileToScreen([
-		instance.worldX / SPRITE_PIXELS_PER_TILE,
-		instance.worldY / SPRITE_PIXELS_PER_TILE,
+	// A sprite's world position is `SimSprite.x + xHot`, not `SimSprite.x`:
+	// that is the point spriteNotInBounds, checkSpriteCollision, getChar and
+	// destroyMapTile all work from. Centring the frame on it keeps the artwork
+	// over the tile the simulation is actually using — the ship stays on the
+	// water it steers along, the monster wrecks what it walks over. Subtracting
+	// the hotspot instead (as this did before) drew the ship four tiles to the
+	// left of its own course, straight across land.
+	const offsetX = manifest.drawOffset?.x ?? manifest.frameWidth / 2;
+	const offsetY = manifest.drawOffset?.y ?? manifest.frameHeight / 2;
+	const [x, y] = viewport.worldTileToScreen([
+		(instance.worldX + xHot - offsetX * scale) / SPRITE_PIXELS_PER_TILE,
+		(instance.worldY + yHot - offsetY * scale) / SPRITE_PIXELS_PER_TILE,
 	]);
-	const bounds = {
-		x: hotScreenX - xHot * sx * scale,
-		y: hotScreenY - yHot * sy * scale,
-		w: fw,
-		h: fh,
-	};
+	const bounds = { x, y, w: fw, h: fh };
 
 	const defs = measurementsForFrame(manifest, instance.frame);
 	const attachments: SpriteAttachmentScreen[] = Object.entries(defs).map(([id, def]) => ({
